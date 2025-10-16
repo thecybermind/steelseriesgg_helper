@@ -18,6 +18,14 @@ Open the script and edit the variables near the top:
 
 * `COREPROPS_FILE` (default: `"C:/ProgramData/SteelSeries/SteelSeries Engine 3/coreProps.json"`) - location of SteelSeries GG's coreprops.json file (you likely won't need to change this except for maybe the drive letter)
 
+### Run
+```
+pip install -r requirements.txt
+python main.py
+```
+
+It will continue to run indefinitely.
+
 ### Future
 
-At some point, this will likely either be made into a legitimate Python module, or I might just write it in another language and have it be invisible/minimize to the notification area ("systray"). For now, just run `python main.py`
+At some point, this will likely either be made into a legitimate Python module, or I might just write it in another language and have it be invisible/minimize to the notification area ("systray").

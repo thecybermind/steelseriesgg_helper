@@ -17,3 +17,7 @@ Open the script and edit the variables near the top:
 * `SLEEP_DURATION` (default: `10`) - This is how often you want to query Sonar and the Windows Audio service
 
 * `COREPROPS_FILE` (default: `"C:/ProgramData/SteelSeries/SteelSeries Engine 3/coreProps.json"`) - location of SteelSeries GG's coreprops.json file (you likely won't need to change this except for maybe the drive letter)
+
+### Future
+
+At some point, this will likely either be made into a legitimate Python module, or I might just write it in another language and have it be invisible/minimize to the notification area ("systray"). For now, just run `python main.py`

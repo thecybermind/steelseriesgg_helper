@@ -124,6 +124,10 @@ def reset_sonar():
     found_mic = False
 
     baseurl = get_gg_subapps("sonar")
+    
+    # can't load sonar URL
+    if not baseurl:
+        return
 
     for device in call_endpoint(baseurl, "/audioDevices"):
         # check to see if the 3 sonar devices exist and are correct

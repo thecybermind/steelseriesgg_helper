@@ -124,7 +124,7 @@ def reset_sonar():
     found_mic = False
 
     baseurl = get_gg_subapps("sonar")
-    
+
     # can't load sonar URL
     if not baseurl:
         return

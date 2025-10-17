@@ -255,7 +255,7 @@ def main():
             print(f"{timestamp()} AudioSrv service not running, restarting")
             restart_service("audiosrv")
             restart_service("RtkAudioUniversalService")
-            continue
+            time.sleep(1)
 
         # if audio service is running, check the sonar configuration
         reset_sonar()

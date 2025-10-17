@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+from datetime import datetime
 
 import psutil
 import requests
@@ -19,6 +20,10 @@ COREPROPS_FILE = "C:/ProgramData/SteelSeries/SteelSeries Engine 3/coreProps.json
 requests.packages.urllib3.disable_warnings(  # pylint: disable=no-member
     requests.packages.urllib3.exceptions.InsecureRequestWarning  # pylint: disable=no-member
 )
+
+
+def timestamp():
+    return datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
 
 
 def get_coreprops():
@@ -100,6 +105,7 @@ def call_endpoint(baseurl, endpoint, method="GET"):
     if endpoint[0] != "/":
         endpoint = "/" + endpoint
     url = baseurl + endpoint
+    # print(f"{timestamp()} Calling URL: {method} {url}")
     r = requests.request(method=method, url=url, timeout=10)
     try:
         return r.json()
@@ -174,6 +180,10 @@ def reset_sonar():
     # if actual devices weren't found, don't do anything. might need to re-plug dongle or
     # Windows Audio service crashed (which the service checker in the main loop will handle)
     if not found_mic or not found_headphones:
+        print(f"{timestamp()} Missing at least 1 headphone device.")
+        print(
+            f"{timestamp()} Active devices: Headphones/Output({found_headphones}) Mic/Input({found_mic})"
+        )
         return
 
     # if one of the sonar devices isn't set up, reset sonar
@@ -182,6 +192,12 @@ def reset_sonar():
         or not found_sonar_communications
         or not found_sonar_mic
     ):
+        print(f"{timestamp()} At least 1 inactive Sonar device found.")
+        print(
+            "{timestamp()} Active Sonar devices: "
+            f"Game({found_sonar_multimedia}) Chat({found_sonar_communications}) Mic({found_sonar_mic})"
+        )
+        print(f"{timestamp()} Resetting sonar")
         call_endpoint(baseurl, "/onboarding/configure", method="put")
         return
 
@@ -190,6 +206,10 @@ def reset_sonar():
     for redir in call_endpoint(baseurl, "/classicRedirections"):
         # { 'deviceId': '{0.0.0.00000000}.{41c2c31b-a17f-4366-83b6-11d5989a8556}', 'id': 'chat', 'isRunning': True},
         if not redir.get("isRunning"):
+            print(
+                f"{timestamp()} Inactive classic redirection found: {redir.get('deviceId', '?')}"
+            )
+            print(f"{timestamp()} Resetting sonar")
             call_endpoint(baseurl, "/onboarding/configure", method="put")
             return
 
@@ -213,6 +233,10 @@ def restart_service(name):
 
 # main loop
 def main():
+    print(f"{timestamp()} Startup")
+    print(f'{timestamp()} Headset name: "{HEADSET_DEVICE_NAME}"')
+    print(f"{timestamp()} Check frequency: {SLEEP_DURATION} seconds")
+    print(f'{timestamp()} coreProps.json location: "{COREPROPS_FILE}"')
     while True:
         # wait
         time.sleep(SLEEP_DURATION)
@@ -220,9 +244,11 @@ def main():
         # check audio service status
         audiosrv = get_service("audiosrv")
         if not audiosrv:  # shouldn't happen. this means service doesn't exist. fail?
+            print(f"{timestamp()} AudioSrv service not found, exiting")
             sys.exit(1)
         # if service isn't running, restart it and wait again
         if audiosrv.status() not in ["running"]:
+            print(f"{timestamp()} AudioSrv service not running, restarting")
             restart_service("audiosrv")
             restart_service("RtkAudioUniversalService")
             continue

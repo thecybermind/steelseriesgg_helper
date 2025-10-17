@@ -198,7 +198,7 @@ def reset_sonar():
     ):
         print(f"{timestamp()} At least 1 inactive Sonar device found.")
         print(
-            "{timestamp()} Active Sonar devices: "
+            f"{timestamp()} Active Sonar devices: "
             f"Game({found_sonar_multimedia}) Chat({found_sonar_communications}) Mic({found_sonar_mic})"
         )
         print(f"{timestamp()} Resetting sonar")

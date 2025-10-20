@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+import urllib.parse
 from datetime import datetime
 
 import psutil
@@ -122,6 +123,8 @@ def reset_sonar():
     # have we found all the actual devices?
     found_headphones = False
     found_mic = False
+    headphones_id = None
+    mic_id = None
 
     baseurl = get_gg_subapps("sonar")
 
@@ -174,12 +177,14 @@ def reset_sonar():
             and device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
         ):
             found_headphones = True
+            headphones_id = device.get("id")
         elif (
             device.get("defaultRole", "") == "console"
             and device.get("dataFlow", "") == "capture"
             and device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
         ):
             found_mic = True
+            mic_id = device.get("id")
 
     # if actual devices weren't found, don't do anything. might need to re-plug dongle or
     # Windows Audio service crashed (which the service checker in the main loop will handle)
@@ -205,8 +210,9 @@ def reset_sonar():
         call_endpoint(baseurl, "/onboarding/configure", method="put")
         return
 
-    # everything should have been taken care of above, but if not, and one of the
-    # "classic" (?) redirections is not enabled, reset sonar
+    # if a device was not set, it should have been taken care of above. at this point, it's possible that the
+    # sonar devices are redirecting to one of the onboard devices like laptop/motherboard speakers/mic
+    # so we need to actually check the IDs of each
     for redir in call_endpoint(baseurl, "/classicRedirections"):
         # { 'deviceId': '{0.0.0.00000000}.{41c2c31b-a17f-4366-83b6-11d5989a8556}', 'id': 'chat', 'isRunning': True},
         if not redir.get("isRunning"):
@@ -216,6 +222,24 @@ def reset_sonar():
             print(f"{timestamp()} Resetting sonar")
             call_endpoint(baseurl, "/onboarding/configure", method="put")
             return
+        # if the output sonar devices are not redirecting to the arctis headphones, change them
+        if redir.get("id") in ["chat", "game"] and redir.get("deviceId") != headphones_id:
+            redir_id = redir.get("id")
+            print(
+                f"{timestamp()} Redirection to non-Arctis device found: {redir.get('id', '?')}"
+            )
+            print(f"{timestamp()} Changing redirection")
+            headphones_escape = urllib.parse.quote_plus(headphones_id)
+            call_endpoint(baseurl, f"/classicRedirections/{redir_id}/deviceId/{headphones_escape}", method="put")
+        # if the input sonar device is not redirecting to the arctis headphones, change it
+        if redir.get("id") in ["mic"] and redir.get("deviceId") != mic_id:
+            print(
+                f"{timestamp()} Redirection to non-Arctis device found: {redir.get('id', '?')}"
+            )
+            print(f"{timestamp()} Changing redirection")
+            mic_escape = urllib.parse.quote_plus(mic_id)
+            call_endpoint(baseurl, f"/classicRedirections/mic/deviceId/{mic_escape}", method="put")
+
 
     # don't worry about these for now
     # call_endpoint(baseurl, '/streamRedirections')

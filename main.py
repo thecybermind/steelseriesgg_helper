@@ -73,7 +73,10 @@ def get_gg_subapps(subapp):
 
     baseurl = get_gg_address()
     url = baseurl + "/subApps"
-    r = requests.get(url=url, timeout=10, verify=False)
+    try:
+        r = requests.request(method="get", url=url, timeout=10, verify=False)
+    except requests.packages.urllib3.exceptions.HTTPError:
+        return ""
     try:
         j = r.json()
     except json.decoder.JSONDecodeError:
@@ -107,7 +110,11 @@ def call_endpoint(baseurl, endpoint, method="GET"):
         endpoint = "/" + endpoint
     url = baseurl + endpoint
     # print(f"{timestamp()} Calling URL: {method} {url}")
-    r = requests.request(method=method, url=url, timeout=10)
+    try:
+        r = requests.request(method=method, url=url, timeout=10)
+    except requests.packages.urllib3.exceptions.HTTPError:
+        return {}
+
     try:
         return r.json()
     except json.decoder.JSONDecodeError:

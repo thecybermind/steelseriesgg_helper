@@ -75,7 +75,7 @@ def get_gg_subapps(subapp):
     url = baseurl + "/subApps"
     try:
         r = requests.request(method="get", url=url, timeout=10, verify=False)
-    except requests.packages.urllib3.exceptions.HTTPError:
+    except:  # pylint: disable=bare-except
         return ""
     try:
         j = r.json()
@@ -112,7 +112,7 @@ def call_endpoint(baseurl, endpoint, method="GET"):
     # print(f"{timestamp()} Calling URL: {method} {url}")
     try:
         r = requests.request(method=method, url=url, timeout=10)
-    except requests.packages.urllib3.exceptions.HTTPError:
+    except:  # pylint: disable=bare-except
         return {}
 
     try:
@@ -122,7 +122,7 @@ def call_endpoint(baseurl, endpoint, method="GET"):
 
 
 # check sonar status and reset if needed
-def reset_sonar():
+def reset_sonar():  # pylint: disable=too-many-branches
     # have we found all the sonar devices?
     found_sonar_multimedia = False
     found_sonar_communications = False
@@ -137,6 +137,7 @@ def reset_sonar():
 
     # can't load sonar URL
     if not baseurl:
+        print(f"{timestamp()} Couldn't load GG or sonar URL")
         return
 
     for device in call_endpoint(baseurl, "/audioDevices"):
@@ -230,14 +231,21 @@ def reset_sonar():
             call_endpoint(baseurl, "/onboarding/configure", method="put")
             return
         # if the output sonar devices are not redirecting to the arctis headphones, change them
-        if redir.get("id") in ["chat", "game"] and redir.get("deviceId") != headphones_id:
+        if (
+            redir.get("id") in ["chat", "game"]
+            and redir.get("deviceId") != headphones_id
+        ):
             redir_id = redir.get("id")
             print(
                 f"{timestamp()} Redirection to non-Arctis device found: {redir.get('id', '?')}"
             )
             print(f"{timestamp()} Changing redirection")
             headphones_escape = urllib.parse.quote_plus(headphones_id)
-            call_endpoint(baseurl, f"/classicRedirections/{redir_id}/deviceId/{headphones_escape}", method="put")
+            call_endpoint(
+                baseurl,
+                f"/classicRedirections/{redir_id}/deviceId/{headphones_escape}",
+                method="put",
+            )
         # if the input sonar device is not redirecting to the arctis headphones, change it
         if redir.get("id") in ["mic"] and redir.get("deviceId") != mic_id:
             print(
@@ -245,8 +253,9 @@ def reset_sonar():
             )
             print(f"{timestamp()} Changing redirection")
             mic_escape = urllib.parse.quote_plus(mic_id)
-            call_endpoint(baseurl, f"/classicRedirections/mic/deviceId/{mic_escape}", method="put")
-
+            call_endpoint(
+                baseurl, f"/classicRedirections/mic/deviceId/{mic_escape}", method="put"
+            )
 
     # don't worry about these for now
     # call_endpoint(baseurl, '/streamRedirections')

@@ -9,7 +9,7 @@ import psutil
 import requests
 
 # set this to match the end of the non-Sonar device names for both the headset and mic
-HEADSET_DEVICE_NAME = "(Arctis Nova 7)"
+HEADSET_DEVICE_NAME = "Arctis Nova 7)"
 
 # set this to how often you want to query Sonar and the Windows Audio service
 SLEEP_DURATION = 10

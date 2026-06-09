@@ -1,5 +1,6 @@
 import json
 import os
+import pprint
 import sys
 import time
 import urllib.parse
@@ -9,7 +10,7 @@ import psutil
 import requests
 
 # set this to match the end of the non-Sonar device names for both the headset and mic
-HEADSET_DEVICE_NAME = "Arctis Nova 7)"
+HEADSET_DEVICE_NAME = "Arctis Nova 7"
 
 # set this to how often you want to query Sonar and the Windows Audio service
 SLEEP_DURATION = 10
@@ -182,14 +183,22 @@ def reset_sonar():  # pylint: disable=too-many-branches
         elif (
             device.get("defaultRole", "") == "console"
             and device.get("dataFlow", "") == "render"
-            and device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
+            and (
+                device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
+                or
+                device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME + ")")
+                )
         ):
             found_headphones = True
             headphones_id = device.get("id")
         elif (
             device.get("defaultRole", "") == "console"
             and device.get("dataFlow", "") == "capture"
-            and device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
+            and (
+                device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME)
+                or
+                device.get("friendlyName", "").endswith(HEADSET_DEVICE_NAME + ")")
+                )
         ):
             found_mic = True
             mic_id = device.get("id")
@@ -222,8 +231,9 @@ def reset_sonar():  # pylint: disable=too-many-branches
     # sonar devices are redirecting to one of the onboard devices like laptop/motherboard speakers/mic
     # so we need to actually check the IDs of each
     for redir in call_endpoint(baseurl, "/classicRedirections"):
+        # pprint.pprint(redir, indent=2)
         # { 'deviceId': '{0.0.0.00000000}.{41c2c31b-a17f-4366-83b6-11d5989a8556}', 'id': 'chat', 'isRunning': True},
-        if not redir.get("isRunning"):
+        if redir.get('deviceId') and not redir.get("isRunning"):
             print(
                 f"{timestamp()} Inactive classic redirection found: {redir.get('deviceId', '?')}"
             )
@@ -281,6 +291,7 @@ def main():
     print(f'{timestamp()} Headset name: "{HEADSET_DEVICE_NAME}"')
     print(f"{timestamp()} Check frequency: {SLEEP_DURATION} seconds")
     print(f'{timestamp()} coreProps.json location: "{COREPROPS_FILE}"')
+
     while True:
         # wait
         time.sleep(SLEEP_DURATION)

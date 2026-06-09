@@ -12,7 +12,7 @@ It also monitors the Windows Audio service (which occasionally crashes when Sona
 
 Open the script and edit the variables near the top:
 
-* `HEADSET_DEVICE_NAME` (default: `"(Arctis Nova 7)"`) - This should match the end of the non-Sonar device names for the [headset](output.png) and [mic](input.png)
+* `HEADSET_DEVICE_NAME` (default: `"Arctis Nova 7"`) - This should match the end of the non-Sonar device names for the [headset](output.png) and [mic](input.png)
 
 * `SLEEP_DURATION` (default: `10`) - This is how often you want to query Sonar and the Windows Audio service
 
